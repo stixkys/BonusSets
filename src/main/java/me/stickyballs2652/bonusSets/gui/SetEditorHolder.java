@@ -175,20 +175,42 @@ public class SetEditorHolder implements InventoryHolder {
                 || slot == BOOTS_DISP || slot == MAINHAND_DISP || slot == OFFHAND_DISP;
     }
 
-    public boolean isHelmetUnbreakable() { return helmetUnbreakable; }
-    public boolean isChestplateUnbreakable() { return chestplateUnbreakable; }
-    public boolean isLeggingsUnbreakable() { return leggingsUnbreakable; }
-    public boolean isBootsUnbreakable() { return bootsUnbreakable; }
+    public boolean isHelmetUnbreakable() {
+        return helmetUnbreakable;
+    }
+    public boolean isChestplateUnbreakable() {
+        return chestplateUnbreakable;
+    }
+    public boolean isLeggingsUnbreakable() {
+        return leggingsUnbreakable;
+    }
+    public boolean isBootsUnbreakable() {
+        return bootsUnbreakable;
+    }
 
-    public void toggleHelmetUnbreakable() { this.helmetUnbreakable = !this.helmetUnbreakable; }
-    public void toggleChestplateUnbreakable() { this.chestplateUnbreakable = !this.chestplateUnbreakable; }
-    public void toggleLeggingsUnbreakable() { this.leggingsUnbreakable = !this.leggingsUnbreakable; }
-    public void toggleBootsUnbreakable() { this.bootsUnbreakable = !this.bootsUnbreakable; }
+    public void toggleHelmetUnbreakable() {
+        this.helmetUnbreakable = !this.helmetUnbreakable;
+    }
+    public void toggleChestplateUnbreakable() {
+        this.chestplateUnbreakable = !this.chestplateUnbreakable;
+    }
+    public void toggleLeggingsUnbreakable() {
+        this.leggingsUnbreakable = !this.leggingsUnbreakable;
+    }
+    public void toggleBootsUnbreakable() {
+        this.bootsUnbreakable = !this.bootsUnbreakable;
+    }
 
-    public String getSetId() { return setId; }
-    public Map<Attribute, Double> getAttributes() { return attributes; }
-    public int getRequiredPieces() { return requiredPieces; }
-    public void setRequiredPieces(int count) { this.requiredPieces = count; }
+    public String getSetId() {
+        return setId;
+    }
+    public Map<Attribute, Double> getAttributes() {return attributes;}
+    public int getRequiredPieces() {
+        return requiredPieces;
+    }
+    public void setRequiredPieces(int count) {
+        this.requiredPieces = count;
+    }
 
     @Override
     public Inventory getInventory() {
