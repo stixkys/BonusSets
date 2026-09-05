@@ -1,9 +1,10 @@
 package me.stickyballs2652.bonusSets.model;
 
 import org.bukkit.Material;
-import org.bukkit.potion.PotionEffect;
+import org.bukkit.attribute.AttributeModifier;
 
-import java.util.List;
+import org.bukkit.attribute.Attribute;
+import java.util.Map;
 
 public record BonusSet(
         String id,
@@ -12,7 +13,7 @@ public record BonusSet(
         Material chestplate,
         Material leggings,
         Material boots,
-        List<PotionEffect> effects,
+        Map<Attribute, AttributeModifier> attributes,
         String permission
 ) {
 
