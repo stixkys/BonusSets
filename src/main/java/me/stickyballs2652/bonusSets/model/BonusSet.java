@@ -8,7 +8,7 @@ import java.util.Map;
 
 public record BonusSet(
         String id,
-        String displayname,
+        String displayName,
         Material helmet,
         Material chestplate,
         Material leggings,
