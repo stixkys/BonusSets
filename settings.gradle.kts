@@ -1,1 +1,1 @@
-rootProject.name = "Bonus Sets"
+rootProject.name = "BonusSets"
