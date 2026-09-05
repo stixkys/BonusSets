@@ -1,26 +1,32 @@
 package me.stickyballs2652.bonusSets.model;
 
-import org.bukkit.Material;
-import org.bukkit.attribute.AttributeModifier;
-
 import org.bukkit.attribute.Attribute;
+import org.bukkit.inventory.ItemStack;
+
 import java.util.Map;
 
 public record BonusSet(
         String id,
         String displayName,
-        Material helmet,
-        Material chestplate,
-        Material leggings,
-        Material boots,
-        Map<Attribute, AttributeModifier> attributes,
+        ItemStack helmet,
+        ItemStack chestplate,
+        ItemStack leggings,
+        ItemStack boots,
+        ItemStack mainhand,
+        ItemStack offhand,
+        int requiredPieces,
+        Map<Attribute, Double> attributes,
         String permission
 ) {
 
-    public boolean matches(Material helm, Material chest, Material legs, Material sniffsniff) {
-        return (helmet == null || helmet == helm) &&
-               (chestplate == null || chestplate == chest) &&
-               (leggings == null || leggings == legs) &&
-               (boots == null || boots == sniffsniff);
+    public int getTotalPiecesConfigured() {
+        int count = 0;
+        if (helmet != null) count++;
+        if (chestplate != null) count++;
+        if (leggings != null) count++;
+        if (boots != null) count++;
+        if (mainhand != null) count++;
+        if (offhand != null) count++;
+        return count;
     }
 }
