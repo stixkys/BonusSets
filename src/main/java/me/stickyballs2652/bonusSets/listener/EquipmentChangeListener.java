@@ -2,6 +2,7 @@ package me.stickyballs2652.bonusSets.listener;
 
 import me.stickyballs2652.bonusSets.Main;
 import me.stickyballs2652.bonusSets.model.BonusSet;
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -21,7 +22,7 @@ import java.util.UUID;
 public class EquipmentChangeListener implements Listener {
 
     private final Main plugin = Main.getInstance();
-    private static final String MODIFIER_PREFIX = "bonusset_";
+    private static final String KEY_PREFIX = "bonusset_";
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
@@ -76,11 +77,11 @@ public class EquipmentChangeListener implements Listener {
             set.attributes().forEach((attr, value) -> {
                 AttributeInstance meowstance = catgirl.getAttribute(attr);
                 if (meowstance != null) {
-                    String name = MODIFIER_PREFIX + set.id() + "_" + attr.name().toLowerCase();
-                    UUID uuid = UUID.nameUUIDFromBytes(name.getBytes());
+                    String modifierName = KEY_PREFIX + set.id().toLowerCase() + "_" + attr.name().toLowerCase();
+                    UUID uuid = UUID.nameUUIDFromBytes(modifierName.getBytes());
                     AttributeModifier meowdifier = new AttributeModifier(
                             uuid,
-                            name,
+                            modifierName,
                             value,
                             AttributeModifier.Operation.ADD_NUMBER
                     );
@@ -95,7 +96,7 @@ public class EquipmentChangeListener implements Listener {
             AttributeInstance meowstance = catgirl.getAttribute(attr);
             if (meowstance != null) {
                 for (AttributeModifier meowdifier : meowstance.getModifiers()) {
-                    if (meowdifier.getName().startsWith(MODIFIER_PREFIX)) {
+                    if (meowdifier.getName().startsWith(KEY_PREFIX)) {
                         meowstance.removeModifier(meowdifier);
                     }
                 }
