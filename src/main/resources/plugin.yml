@@ -1,5 +1,5 @@
 name: BonusSets
-version: '${version}'
+version: '1.0'
 
 main: me.stickyballs2652.bonusSets.Main
 api-version: '1.21'
@@ -8,7 +8,7 @@ load: POSTWORLD
 authors: [ stickyballs2652 ]
 
 commands:
-  setbonus:
-    description: Main command for managing bonus sets.
+  bonussets:
+    description: Main command for BonusSets GUI and managment.
     permission: bonussets.use
-    aliases: [bs, bonussets]
+    aliases: [bs]
