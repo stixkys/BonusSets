@@ -2,6 +2,8 @@ package me.stickyballs2652.bonusSets.manager;
 
 import me.stickyballs2652.bonusSets.Main;
 import me.stickyballs2652.bonusSets.model.BonusSet;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -54,12 +56,12 @@ public class SetManager {
         config.set(path + "items.offhand", set.offhand());
 
         config.set(path + "attributes", null);
-        set.attributes().forEach((attr, val) -> config.set(path + "attributes." + attr.name(), val));
+        set.attributes().forEach((attr, val) -> config.set(path + "attributes." + attr.getKey().getKey(), val));
 
         try {
             config.save(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("Could not save set " + set.id() + " to disk!");
+            plugin.getLogger().severe("Could not save set " + set.id() + " to disk");
         }
     }
 
@@ -85,11 +87,11 @@ public class SetManager {
             ConfigurationSection attrSection = config.getConfigurationSection(path + "attributes");
             if (attrSection != null) {
                 for (String attrKey : attrSection.getKeys(false)) {
-                    try {
-                        Attribute attr = Attribute.valueOf(attrKey.toUpperCase());
+                    Attribute attr = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(attrKey.toLowerCase()));
+                    if (attr != null) {
                         double val = attrSection.getDouble(attrKey);
                         attributes.put(attr, val);
-                    } catch (IllegalArgumentException ignored) {
+                    } else {
                         plugin.getLogger().severe("Invalid attribute key: " + attrKey);
                     }
                 }

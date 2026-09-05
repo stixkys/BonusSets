@@ -1,6 +1,8 @@
 package me.stickyballs2652.bonusSets.gui;
 
 import me.stickyballs2652.bonusSets.Main;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,21 +51,25 @@ public class AttributeEditorListener implements Listener {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta() || !clicked.getItemMeta().hasDisplayName()) return;
 
-        String displayName = clicked.getItemMeta().getDisplayName().replace("§e ", "").trim();
+        String keyName = clicked.getItemMeta().getDisplayName().replace("§e", "").trim().toLowerCase();
         try {
-            Attribute attr = Attribute.valueOf(displayName);
+            Attribute attr = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(keyName));
+            if (attr == null) return;
+
             double current = holder.getAttributes().getOrDefault(attr, 0.0);
 
             ClickType click = event.getClick();
             if (click == ClickType.LEFT) current += 1.0;
             else if (click == ClickType.SHIFT_LEFT) current += 0.1;
             else if (click == ClickType.RIGHT) current -= 1.0;
-            else if (click == ClickType.SHIFT_RIGHT) current -=0.1;
+            else if (click == ClickType.SHIFT_RIGHT) current -= 0.1;
 
-            if (current <= 0) {
+            double rounded = Math.round(current * 10.0) / 10.0;
+
+            if (rounded == 0.0) {
                 holder.getAttributes().remove(attr);
             } else {
-                holder.getAttributes().put(attr, Math.round(current * 10.0) / 10.0);
+                holder.getAttributes().put(attr, rounded);
             }
 
             holder.render();
