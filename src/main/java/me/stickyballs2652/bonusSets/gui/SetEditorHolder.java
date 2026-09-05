@@ -204,7 +204,9 @@ public class SetEditorHolder implements InventoryHolder {
     public String getSetId() {
         return setId;
     }
-    public Map<Attribute, Double> getAttributes() {return attributes;}
+    public Map<Attribute, Double> getAttributes() {
+        return attributes;
+    }
     public int getRequiredPieces() {
         return requiredPieces;
     }
