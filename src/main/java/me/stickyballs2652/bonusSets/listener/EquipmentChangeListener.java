@@ -2,6 +2,7 @@ package me.stickyballs2652.bonusSets.listener;
 
 import me.stickyballs2652.bonusSets.Main;
 import me.stickyballs2652.bonusSets.model.BonusSet;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -26,12 +27,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class EquipmentChangeListener implements Listener {
@@ -39,6 +35,7 @@ public class EquipmentChangeListener implements Listener {
     private final Main plugin = Main.getInstance();
     private final NamespacedKey pdcKey;
     private final Map<UUID, BukkitTask> activeParticleTasks = new HashMap<>();
+    private final Map<UUID, Set<String>> activePlayerSets = new HashMap<>();
 
     private static final Color[] PARTICLE_COLORS = new Color[]{
             Color.fromRGB(0, 255, 255),
@@ -76,13 +73,12 @@ public class EquipmentChangeListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        removeAllModifiers(event.getPlayer());
-        stopParticleTask(event.getPlayer());
+        cleanupPlayer(event.getPlayer());
     }
 
     public void updatePlayerAttributes(Player player) {
-        removeAllModifiers(player);
-
+        Set<String> previousSets = activePlayerSets.getOrDefault(player.getUniqueId(), new HashSet<>());
+        Set<String> currentSets = new HashSet<>();
         Map<BonusSet, Integer> activeCounts = new HashMap<>();
 
         for (BonusSet set : plugin.getSetManager().getSets()) {
@@ -100,9 +96,35 @@ public class EquipmentChangeListener implements Listener {
 
             if (matches >= set.requiredPieces()) {
                 activeCounts.put(set, matches);
+                currentSets.add(set.id());
             }
         }
 
+        for (String oldSetId : previousSets) {
+            if (!currentSets.contains(oldSetId)) {
+                BonusSet oldSet = plugin.getSetManager().getSet(oldSetId);
+                if (oldSet != null && oldSet.deactivateCommands() != null) {
+                    oldSet.deactivateCommands().forEach(cmd ->
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", player.getName()))
+                    );
+                }
+            }
+        }
+
+        for (String newSetId : currentSets) {
+            if (!previousSets.contains(newSetId)) {
+                BonusSet newSet = plugin.getSetManager().getSet(newSetId);
+                if (newSet != null && newSet.activateCommands() != null) {
+                    newSet.activateCommands().forEach(cmd ->
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", player.getName()))
+                    );
+                }
+            }
+        }
+
+        activePlayerSets.put(player.getUniqueId(), currentSets);
+
+        removeAllModifiers(player);
         applySetModifiers(player, activeCounts);
         updateParticleEffects(player, !activeCounts.isEmpty());
     }
@@ -151,8 +173,18 @@ public class EquipmentChangeListener implements Listener {
         }
     }
 
+    private void cleanupPlayer(Player player) {
+        removeAllModifiers(player);
+        stopParticleTask(player);
+        activePlayerSets.remove(player.getUniqueId());
+    }
+
     private void updateParticleEffects(Player player, boolean hasActiveSet) {
         stopParticleTask(player);
+
+        if (!plugin.getConfig().getBoolean("enable-particles", true)) {
+            return;
+        }
 
         if (hasActiveSet) {
             BukkitTask task = new BukkitRunnable() {
@@ -176,7 +208,6 @@ public class EquipmentChangeListener implements Listener {
                         double yOffset = (angle / (2 * Math.PI)) % 1.9;
 
                         Location particleLoc = loc.clone().add(x, yOffset, z);
-
                         Color randomColor = PARTICLE_COLORS[ThreadLocalRandom.current().nextInt(PARTICLE_COLORS.length)];
 
                         player.getWorld().spawnParticle(

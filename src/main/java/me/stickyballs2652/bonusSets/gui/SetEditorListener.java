@@ -12,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
+
 public class SetEditorListener implements Listener {
 
     @EventHandler
@@ -71,6 +73,8 @@ public class SetEditorListener implements Listener {
             Player player = (Player) event.getWhoClicked();
             Inventory inventory = holder.getInventory();
 
+            BonusSet existing = Main.getInstance().getSetManager().getSet(holder.getSetId());
+
             BonusSet savedSet = new BonusSet(
                     holder.getSetId(),
                     holder.getSetId(),
@@ -82,6 +86,9 @@ public class SetEditorListener implements Listener {
                     prepareItem(inventory.getItem(SetEditorHolder.OFFHAND_SLOT), holder.getSetId(), false),
                     holder.getRequiredPieces(),
                     holder.getAttributes(),
+                    existing != null ? existing.potionEffects() : new ArrayList<>(),
+                    existing != null ? existing.activateCommands() : new ArrayList<>(),
+                    existing != null ? existing.deactivateCommands() : new ArrayList<>(),
                     "bonussets.use." + holder.getSetId().toLowerCase()
             );
 

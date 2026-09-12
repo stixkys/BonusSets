@@ -59,17 +59,19 @@ public class AttributeEditorHolder implements InventoryHolder {
 
             double currentValue = attributes.getOrDefault(attr, 0.0);
 
-            ItemStack item = new ItemStack(currentValue > 0 ? Material.LIME_DYE : Material.GRAY_DYE);
+            ItemStack item = new ItemStack(currentValue != 0 ? Material.LIME_DYE : Material.GRAY_DYE);
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 meta.setDisplayName("§e" + attr.getKey().getKey().toUpperCase());
                 meta.setLore(Arrays.asList(
-                        "§7Current bonus: §a+" + currentValue,
+                        "§7Current bonus: §a" + (currentValue > 0 ? "+" : "") + currentValue,
                         "",
                         "§eLeft click: §7+1.0",
                         "§eShift Left-click: §7+0.1",
+                        "§eDrop (Q) click: §7+0.01",
                         "§cRight click: §7-1.0",
-                        "§cShift Right-click: §7-0.1"
+                        "§cShift Right-click: §7-0.1",
+                        "§cCtrl + Drop (Q): §7-0.01"
                 ));
                 item.setItemMeta(meta);
             }
@@ -84,7 +86,7 @@ public class AttributeEditorHolder implements InventoryHolder {
             inventory.setItem(NEXT_PAGE_BTN, createItem(Material.ARROW, "§aNext page"));
         }
 
-        inventory.setItem(SAVE_BACK_BTN, createItem(Material.BARRIER, "§cBack to set 3ditor"));
+        inventory.setItem(SAVE_BACK_BTN, createItem(Material.BARRIER, "§cBack to set editor"));
     }
 
     private ItemStack createItem(Material mat, String name) {
@@ -100,19 +102,15 @@ public class AttributeEditorHolder implements InventoryHolder {
     public String getSetId() {
         return setId;
     }
-
     public Map<Attribute, Double> getAttributes() {
         return attributes;
     }
-
     public BonusSet getSet() {
         return set;
     }
-
     public int getPage() {
         return page;
     }
-
     public void setPage(int page) {
         this.page = page;
     }

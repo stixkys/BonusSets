@@ -36,7 +36,7 @@ public class AttributeEditorListener implements Listener {
             return;
         }
 
-        if (slot == AttributeEditorHolder.SAVE_BACK_BTN && event.getWhoClicked() instanceof Player catgirlsontop) {
+        if (slot == AttributeEditorHolder.SAVE_BACK_BTN && event.getWhoClicked() instanceof Player player) {
             SetEditorHolder editorHolder = new SetEditorHolder(
                     holder.getSetId(),
                     Main.getInstance().getSetManager().getSet(holder.getSetId())
@@ -44,7 +44,7 @@ public class AttributeEditorListener implements Listener {
             editorHolder.getAttributes().clear();
             editorHolder.getAttributes().putAll(holder.getAttributes());
             editorHolder.renderControls();
-            catgirlsontop.openInventory(editorHolder.getInventory());
+            player.openInventory(editorHolder.getInventory());
             return;
         }
 
@@ -57,14 +57,25 @@ public class AttributeEditorListener implements Listener {
             if (attr == null) return;
 
             double current = holder.getAttributes().getOrDefault(attr, 0.0);
-
             ClickType click = event.getClick();
-            if (click == ClickType.LEFT) current += 1.0;
-            else if (click == ClickType.SHIFT_LEFT) current += 0.1;
-            else if (click == ClickType.RIGHT) current -= 1.0;
-            else if (click == ClickType.SHIFT_RIGHT) current -= 0.1;
 
-            double rounded = Math.round(current * 10.0) / 10.0;
+            if (click == ClickType.LEFT) {
+                current += 1.0;
+            } else if (click == ClickType.SHIFT_LEFT) {
+                current += 0.1;
+            } else if (click == ClickType.DROP) {
+                current += 0.01;
+            } else if (click == ClickType.RIGHT) {
+                current -= 1.0;
+            } else if (click == ClickType.SHIFT_RIGHT) {
+                current -= 0.1;
+            } else if (click == ClickType.CONTROL_DROP) {
+                current -= 0.01;
+            } else {
+                return;
+            }
+
+            double rounded = Math.round(current * 100.0) / 100.0;
 
             if (rounded == 0.0) {
                 holder.getAttributes().remove(attr);

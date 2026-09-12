@@ -58,6 +58,9 @@ public class SetManager {
         config.set(path + "attributes", null);
         set.attributes().forEach((attr, val) -> config.set(path + "attributes." + attr.getKey().getKey(), val));
 
+        config.set(path + "activateCommands", set.activateCommands());
+        config.set(path + "deactivateCommands", set.deactivateCommands());
+
         try {
             config.save(file);
         } catch (IOException e) {
@@ -89,17 +92,18 @@ public class SetManager {
                 for (String attrKey : attrSection.getKeys(false)) {
                     Attribute attr = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(attrKey.toLowerCase()));
                     if (attr != null) {
-                        double val = attrSection.getDouble(attrKey);
-                        attributes.put(attr, val);
-                    } else {
-                        plugin.getLogger().severe("Invalid attribute key: " + attrKey);
+                        attributes.put(attr, attrSection.getDouble(attrKey));
                     }
                 }
             }
 
+            List<String> activateCmds = config.getStringList(path + "activateCommands");
+            List<String> deactivateCmds = config.getStringList(path + "deactivateCommands");
+
             BonusSet set = new BonusSet(
                     key, displayName, helmet, chestplate, leggings, boots,
-                    mainhand, offhand, requiredPieces, attributes, permission
+                    mainhand, offhand, requiredPieces, attributes, new ArrayList<>(),
+                    activateCmds, deactivateCmds, permission
             );
             activeSets.put(key.toLowerCase(), set);
         }
