@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ public class SetEditorHolder implements InventoryHolder {
     private final Inventory inventory;
     private final String setId;
     private final Map<Attribute, Double> attributes = new HashMap<>();
+    private final List<PotionEffect> potionEffects = new ArrayList<>();
     private int requiredPieces = 1;
 
     private boolean helmetUnbreakable = false;
@@ -46,6 +48,7 @@ public class SetEditorHolder implements InventoryHolder {
     public static final int BOOTS_TOGGLE = 31;
 
     public static final int ATTRIBUTE_BTN = 39;
+    public static final int POTION_BTN = 40;
     public static final int THRESHOLD_BTN = 41;
     public static final int SAVE_BTN = 43;
 
@@ -80,6 +83,11 @@ public class SetEditorHolder implements InventoryHolder {
             inventory.setItem(BOOTS_SLOT, set.boots().clone());
             if (set.boots().hasItemMeta()) bootsUnbreakable = set.boots().getItemMeta().isUnbreakable();
         }
+
+        if (set.potionEffects() != null) {
+            this.potionEffects.addAll(set.potionEffects());
+        }
+
         if (set.mainhand() != null) inventory.setItem(MAINHAND_SLOT, set.mainhand().clone());
         if (set.offhand() != null) inventory.setItem(OFFHAND_SLOT, set.offhand().clone());
     }
@@ -96,7 +104,7 @@ public class SetEditorHolder implements InventoryHolder {
             if (isInputSlot(i)) continue;
             if (isDisplaySlot(i)) continue;
             if (i == HELMET_TOGGLE || i == CHESTPLATE_TOGGLE || i == LEGGINGS_TOGGLE || i == BOOTS_TOGGLE) continue;
-            if (i == ATTRIBUTE_BTN || i == THRESHOLD_BTN || i == SAVE_BTN) continue;
+            if (i == ATTRIBUTE_BTN || i == POTION_BTN || i == THRESHOLD_BTN || i == SAVE_BTN) continue;
             inventory.setItem(i, glass);
         }
 
@@ -123,6 +131,22 @@ public class SetEditorHolder implements InventoryHolder {
             attrItem.setItemMeta(attrMeta);
         }
         inventory.setItem(ATTRIBUTE_BTN, attrItem);
+
+        ItemStack potionItem = new ItemStack(Material.BREWING_STAND);
+        ItemMeta pMeta = potionItem.getItemMeta();
+        if (pMeta != null) {
+            pMeta.setDisplayName("§dSet Potion Effects");
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Click to edit effects:");
+            if (potionEffects.isEmpty()) {
+                lore.add("§cNone");
+            } else {
+                potionEffects.forEach(eff -> lore.add("§e- " + eff.getType().getKey().getKey().toUpperCase() + " " + (eff.getAmplifier() + 1)));
+            }
+            pMeta.setLore(lore);
+            potionItem.setItemMeta(pMeta);
+        }
+        inventory.setItem(POTION_BTN, potionItem);
 
         ItemStack thresholdItem = new ItemStack(Material.COMPARATOR);
         ItemMeta tMeta = thresholdItem.getItemMeta();
@@ -206,6 +230,9 @@ public class SetEditorHolder implements InventoryHolder {
     }
     public Map<Attribute, Double> getAttributes() {
         return attributes;
+    }
+    public List<PotionEffect> getPotionEffects() {
+        return potionEffects;
     }
     public int getRequiredPieces() {
         return requiredPieces;

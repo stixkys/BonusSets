@@ -1,6 +1,8 @@
 package me.stickyballs2652.bonusSets;
 
 import me.stickyballs2652.bonusSets.gui.AttributeEditorListener;
+import me.stickyballs2652.bonusSets.gui.PotionEffectEditorListener;
+import me.stickyballs2652.bonusSets.gui.SetEditorHolder;
 import me.stickyballs2652.bonusSets.gui.SetEditorListener;
 import me.stickyballs2652.bonusSets.listener.EquipmentChangeListener;
 import me.stickyballs2652.bonusSets.manager.SetManager;
@@ -26,6 +28,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
 
         getServer().getPluginManager().registerEvents(new SetEditorListener(), this);
         getServer().getPluginManager().registerEvents(new AttributeEditorListener(), this);
+        getServer().getPluginManager().registerEvents(new PotionEffectEditorListener(), this);
         getServer().getPluginManager().registerEvents(new EquipmentChangeListener(), this);
 
         getCommand("bonussets").setExecutor(this);
@@ -64,7 +67,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
 
             String setId = args[1];
             BonusSet set = setManager.getSet(setId);
-            me.stickyballs2652.bonusSets.gui.SetEditorHolder holder = new me.stickyballs2652.bonusSets.gui.SetEditorHolder(setId, set);
+            SetEditorHolder holder = new SetEditorHolder(setId, set);
             player.openInventory(holder.getInventory());
             return true;
         }

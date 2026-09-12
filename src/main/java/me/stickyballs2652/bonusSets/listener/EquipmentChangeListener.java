@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -103,10 +104,17 @@ public class EquipmentChangeListener implements Listener {
         for (String oldSetId : previousSets) {
             if (!currentSets.contains(oldSetId)) {
                 BonusSet oldSet = plugin.getSetManager().getSet(oldSetId);
-                if (oldSet != null && oldSet.deactivateCommands() != null) {
-                    oldSet.deactivateCommands().forEach(cmd ->
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", player.getName()))
-                    );
+                if (oldSet != null) {
+                    if (oldSet.deactivateCommands() != null) {
+                        oldSet.deactivateCommands().forEach(cmd ->
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", player.getName()))
+                        );
+                    }
+                    if (oldSet.potionEffects() != null) {
+                        for (PotionEffect effect : oldSet.potionEffects()) {
+                            player.removePotionEffect(effect.getType());
+                        }
+                    }
                 }
             }
         }
@@ -126,6 +134,15 @@ public class EquipmentChangeListener implements Listener {
 
         removeAllModifiers(player);
         applySetModifiers(player, activeCounts);
+
+        activeCounts.forEach((set, count) -> {
+            if (set.potionEffects() != null) {
+                for (PotionEffect effect : set.potionEffects()) {
+                    player.addPotionEffect(effect);
+                }
+            }
+        });
+
         updateParticleEffects(player, !activeCounts.isEmpty());
     }
 
@@ -174,6 +191,18 @@ public class EquipmentChangeListener implements Listener {
     }
 
     private void cleanupPlayer(Player player) {
+        BonusSet set = activePlayerSets.containsKey(player.getUniqueId()) ? null : null;
+        Set<String> activeSetIds = activePlayerSets.get(player.getUniqueId());
+        if (activeSetIds != null) {
+            for (String setId : activeSetIds) {
+                BonusSet activeSet = plugin.getSetManager().getSet(setId);
+                if (activeSet != null && activeSet.potionEffects() != null) {
+                    for (PotionEffect effect : activeSet.potionEffects()) {
+                        player.removePotionEffect(effect.getType());
+                    }
+                }
+            }
+        }
         removeAllModifiers(player);
         stopParticleTask(player);
         activePlayerSets.remove(player.getUniqueId());

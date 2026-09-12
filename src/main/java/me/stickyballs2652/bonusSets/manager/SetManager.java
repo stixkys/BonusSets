@@ -9,6 +9,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +60,15 @@ public class SetManager {
         config.set(path + "attributes", null);
         set.attributes().forEach((attr, val) -> config.set(path + "attributes." + attr.getKey().getKey(), val));
 
+        config.set(path + "potionEffects", null);
+        List<String> serializedEffects = new ArrayList<>();
+        if (set.potionEffects() != null) {
+            for (PotionEffect effect : set.potionEffects()) {
+                serializedEffects.add(effect.getType().getKey().getKey() + "," + effect.getAmplifier());
+            }
+        }
+        config.set(path + "potionEffects", serializedEffects);
+
         config.set(path + "activateCommands", set.activateCommands());
         config.set(path + "deactivateCommands", set.deactivateCommands());
 
@@ -97,12 +108,27 @@ public class SetManager {
                 }
             }
 
+            List<PotionEffect> potionEffects = new ArrayList<>();
+            List<String> rawEffects = config.getStringList(path + "potionEffects");
+            for (String raw : rawEffects) {
+                String[] parts = raw.split(",");
+                if (parts.length >= 2) {
+                    PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft(parts[0].toLowerCase()));
+                    try {
+                        int amplifier = Integer.parseInt(parts[1]);
+                        if (type != null) {
+                            potionEffects.add(new PotionEffect(type, Integer.MAX_VALUE, amplifier, true, false));
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+
             List<String> activateCmds = config.getStringList(path + "activateCommands");
             List<String> deactivateCmds = config.getStringList(path + "deactivateCommands");
 
             BonusSet set = new BonusSet(
                     key, displayName, helmet, chestplate, leggings, boots,
-                    mainhand, offhand, requiredPieces, attributes, new ArrayList<>(),
+                    mainhand, offhand, requiredPieces, attributes, potionEffects,
                     activateCmds, deactivateCmds, permission
             );
             activeSets.put(key.toLowerCase(), set);
