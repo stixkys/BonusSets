@@ -1,0 +1,14 @@
+name: BonusSets
+version: '1.1'
+
+main: me.stickyballs2652.bonusSets.Main
+api-version: '1.21'
+load: POSTWORLD
+
+authors: [ stickyballs2652 ]
+
+commands:
+  bonussets:
+    description: Main command for BonusSets GUI and managment.
+    permission: bonussets.use
+    aliases: [bs]
