@@ -44,6 +44,13 @@ public class BonusSetsCommand implements CommandExecutor, TabCompleter {
             }
             Main.getInstance().reloadConfig();
             Main.getInstance().getSetManager().loadSets();
+
+            if (Main.getInstance().getEquipmentListener() != null) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    Main.getInstance().getEquipmentListener().updatePlayerAttributes(player);
+                }
+            }
+
             sender.sendMessage("§a[BonusSets] Configuration reloaded successfully!");
             return true;
         }
