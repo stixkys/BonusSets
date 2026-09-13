@@ -1,4 +1,6 @@
 ../.gradle
+**/build/
+!**/build/libs/BonusSets-1.1.jar
 !**/src/**/build/
 
 # Ignore Gradle GUI config
