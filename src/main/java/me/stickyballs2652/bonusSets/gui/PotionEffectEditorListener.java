@@ -14,15 +14,15 @@ import org.bukkit.potion.PotionEffectType;
 public class PotionEffectEditorListener implements Listener {
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof PotionEffectEditorHolder holder)) {
+    public void onInventoryClick(InventoryClickEvent meowEvent) {
+        if (!(meowEvent.getInventory().getHolder() instanceof PotionEffectEditorHolder holder)) {
             return;
         }
 
-        event.setCancelled(true);
+        meowEvent.setCancelled(true);
 
-        int slot = event.getRawSlot();
-        if (slot >= event.getInventory().getSize()) return;
+        int slot = meowEvent.getRawSlot();
+        if (slot >= meowEvent.getInventory().getSize()) return;
 
         if (slot == PotionEffectEditorHolder.PREV_PAGE_BTN && holder.getPage() > 0) {
             holder.setPage(holder.getPage() - 1);
@@ -36,7 +36,7 @@ public class PotionEffectEditorListener implements Listener {
             return;
         }
 
-        if (slot == PotionEffectEditorHolder.SAVE_BACK_BTN && event.getWhoClicked() instanceof Player player) {
+        if (slot == PotionEffectEditorHolder.SAVE_BACK_BTN && meowEvent.getWhoClicked() instanceof Player catgirl) {
             SetEditorHolder editorHolder = new SetEditorHolder(
                     holder.getSetId(),
                     Main.getInstance().getSetManager().getSet(holder.getSetId())
@@ -44,24 +44,33 @@ public class PotionEffectEditorListener implements Listener {
             editorHolder.getPotionEffects().clear();
             editorHolder.getPotionEffects().addAll(holder.getEffects());
             editorHolder.renderControls();
-            player.openInventory(editorHolder.getInventory());
+            catgirl.openInventory(editorHolder.getInventory());
             return;
         }
 
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta() || !clicked.getItemMeta().hasDisplayName()) return;
+        ItemStack clickedMeow = meowEvent.getCurrentItem();
+        if (clickedMeow == null || !clickedMeow.hasItemMeta() || !clickedMeow.getItemMeta().hasDisplayName()) return;
 
-        String keyName = clicked.getItemMeta().getDisplayName().replace("§e", "").trim().toLowerCase();
+        String keyName = clickedMeow.getItemMeta().getDisplayName().replace("§e", "").trim().toLowerCase();
         try {
-            PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft(keyName));
-            if (type == null) return;
+            PotionEffectType meowType = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft(keyName));
+            if (meowType == null) return;
 
-            ClickType click = event.getClick();
-            if (click.isLeftClick()) {
-                holder.updateEffect(type, true);
-            } else if (click.isRightClick()) {
-                holder.updateEffect(type, false);
+            ClickType clickCatboy = meowEvent.getClick();
+            int tierChange = 0;
+            boolean toggleParticles = false;
+
+            if (clickCatboy == ClickType.LEFT) {
+                tierChange = 1;
+            } else if (clickCatboy == ClickType.RIGHT) {
+                tierChange = -1;
+            } else if (clickCatboy == ClickType.CONTROL_DROP || clickCatboy == ClickType.DROP || clickCatboy == ClickType.MIDDLE) {
+                toggleParticles = true;
+            } else {
+                return;
             }
-        } catch (IllegalArgumentException ignored) {}
+
+            holder.updateEffect(meowType, tierChange, toggleParticles);
+        } catch (IllegalArgumentException meowIgnored) {}
     }
 }

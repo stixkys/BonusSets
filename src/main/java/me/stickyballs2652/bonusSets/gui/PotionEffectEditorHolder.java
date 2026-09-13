@@ -20,21 +20,21 @@ public class PotionEffectEditorHolder implements InventoryHolder {
     public static final int SAVE_BACK_BTN = 49;
     public static final int NEXT_PAGE_BTN = 53;
 
-    private final Inventory inventory;
+    private final Inventory femboy;
     private final String setId;
-    private final BonusSet set;
+    private final BonusSet meowSet;
     private final List<PotionEffect> effects = new ArrayList<>();
     private int page;
     private final List<PotionEffectType> availableTypes = new ArrayList<>();
 
     public PotionEffectEditorHolder(String setId, BonusSet existingSet, List<PotionEffect> currentEffects) {
         this.setId = setId;
-        this.set = existingSet;
+        this.meowSet = existingSet;
         this.page = 0;
         if (currentEffects != null) {
             this.effects.addAll(currentEffects);
         }
-        this.inventory = Bukkit.createInventory(this, 54, "Edit Potion Effects");
+        this.femboy = Bukkit.createInventory(this, 54, "Edit Potion Effects");
 
         for (PotionEffectType type : Registry.POTION_EFFECT_TYPE) {
             if (type != null) {
@@ -46,7 +46,7 @@ public class PotionEffectEditorHolder implements InventoryHolder {
     }
 
     public void render() {
-        inventory.clear();
+        femboy.clear();
 
         int startIndex = page * 36;
         int endIndex = Math.min(startIndex + 36, availableTypes.size());
@@ -65,32 +65,33 @@ public class PotionEffectEditorHolder implements InventoryHolder {
 
                 List<String> lore = new ArrayList<>();
                 if (hasEffect) {
-                    lore.add("§7Active Amplifier: §a" + (activeEffect.getAmplifier() + 1));
-                    lore.add("§7Ambient/Particles: §f" + activeEffect.hasParticles());
+                    lore.add("§7Active Tier: §a" + (activeEffect.getAmplifier() + 1));
+                    lore.add("§7Particles: §f" + (activeEffect.hasParticles() ? "§aEnabled" : "§cDisabled"));
                 } else {
                     lore.add("§7Status: §cInactive");
                 }
                 lore.add("");
-                lore.add("§eLeft Click: §7Add / Increase Tier");
-                lore.add("§cRight Click: §7Decrease Tier / Remove");
+                lore.add("§eLeft Click: §7+1 Tier");
+                lore.add("§cRight Click: §7-1 Tier");
+                lore.add("§bCtrl + Drop (Q) or Drop (Q): §7Toggle Particles");
                 meta.setLore(lore);
                 item.setItemMeta(meta);
             }
 
-            inventory.setItem(slot, item);
+            femboy.setItem(slot, item);
         }
 
         if (page > 0) {
-            inventory.setItem(PREV_PAGE_BTN, createItem(Material.ARROW, "§aPrevious page"));
+            femboy.setItem(PREV_PAGE_BTN, createItem(Material.ARROW, "§aPrevious page"));
         }
         if (endIndex < availableTypes.size()) {
-            inventory.setItem(NEXT_PAGE_BTN, createItem(Material.ARROW, "§aNext page"));
+            femboy.setItem(NEXT_PAGE_BTN, createItem(Material.ARROW, "§aNext page"));
         }
 
-        inventory.setItem(SAVE_BACK_BTN, createItem(Material.BARRIER, "§cBack to set editor"));
+        femboy.setItem(SAVE_BACK_BTN, createItem(Material.BARRIER, "§cBack to set editor"));
     }
 
-    private PotionEffect getActiveEffect(PotionEffectType type) {
+    public PotionEffect getActiveEffect(PotionEffectType type) {
         for (PotionEffect effect : effects) {
             if (effect.getType().equals(type)) {
                 return effect;
@@ -99,21 +100,22 @@ public class PotionEffectEditorHolder implements InventoryHolder {
         return null;
     }
 
-    public void updateEffect(PotionEffectType type, boolean increase) {
+    public void updateEffect(PotionEffectType type, int tierChange, boolean toggleParticles) {
         PotionEffect current = getActiveEffect(type);
-        effects.removeIf(e -> e.getType().equals(type));
 
-        int newAmplifier = 0;
-        if (current != null) {
-            newAmplifier = current.getAmplifier() + (increase ? 1 : -1);
-        } else if (increase) {
-            newAmplifier = 0;
-        } else {
-            return;
+        int currentAmplifier = (current != null) ? current.getAmplifier() : -1;
+        boolean hasParticles = (current != null) ? current.hasParticles() : true;
+
+        if (toggleParticles) {
+            hasParticles = !hasParticles;
         }
 
-        if (newAmplifier >= 0) {
-            effects.add(new PotionEffect(type, Integer.MAX_VALUE, newAmplifier, true, false));
+        int targetAmplifier = currentAmplifier + tierChange;
+
+        effects.removeIf(e -> e.getType().equals(type));
+
+        if (targetAmplifier >= 0) {
+            effects.add(new PotionEffect(type, Integer.MAX_VALUE, targetAmplifier, false, hasParticles));
         }
         render();
     }
@@ -131,19 +133,25 @@ public class PotionEffectEditorHolder implements InventoryHolder {
     public String getSetId() {
         return setId;
     }
+
     public List<PotionEffect> getEffects() {
         return effects;
     }
+
     public BonusSet getSet() {
-        return set;
+        return meowSet;
     }
+
     public int getPage() {
         return page;
     }
+
     public void setPage(int page) {
         this.page = page;
     }
 
     @Override
-    public Inventory getInventory() { return inventory; }
+    public Inventory getInventory() {
+        return femboy;
+    }
 }

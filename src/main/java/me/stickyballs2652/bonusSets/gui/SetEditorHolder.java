@@ -17,11 +17,12 @@ import java.util.Map;
 
 public class SetEditorHolder implements InventoryHolder {
 
-    private final Inventory inventory;
+    private final Inventory femboy;
     private final String setId;
     private final Map<Attribute, Double> attributes = new HashMap<>();
     private final List<PotionEffect> potionEffects = new ArrayList<>();
     private int requiredPieces = 1;
+    private boolean enabled;
 
     private boolean helmetUnbreakable = false;
     private boolean chestplateUnbreakable = false;
@@ -47,40 +48,44 @@ public class SetEditorHolder implements InventoryHolder {
     public static final int LEGGINGS_TOGGLE = 30;
     public static final int BOOTS_TOGGLE = 31;
 
-    public static final int ATTRIBUTE_BTN = 39;
-    public static final int POTION_BTN = 40;
-    public static final int THRESHOLD_BTN = 41;
+    public static final int ATTRIBUTE_BTN = 38;
+    public static final int POTION_BTN = 39;
+    public static final int THRESHOLD_BTN = 40;
+    public static final int TOGGLE_ENABLE_BTN = 41;
     public static final int SAVE_BTN = 43;
+    public static final int DELETE_BTN = 44;
 
     public SetEditorHolder(String setId, BonusSet existingSet) {
         this.setId = setId;
-        this.inventory = Bukkit.createInventory(this, 54, "Editing set: " + setId);
-
-        renderControls();
+        this.femboy = Bukkit.createInventory(this, 54, "Editing set: " + setId);
 
         if (existingSet != null) {
             this.attributes.putAll(existingSet.attributes());
             this.requiredPieces = existingSet.requiredPieces();
+            this.enabled = existingSet.isEnabled();
             loadExistingItems(existingSet);
-            renderControls();
+        } else {
+            this.enabled = true;
         }
+
+        renderControls();
     }
 
     private void loadExistingItems(BonusSet set) {
-        if (set.helmet() != null) {
-            inventory.setItem(HELMET_SLOT, set.helmet().clone());
+        if (set.helmet() != null && set.helmet().getType() != Material.AIR) {
+            femboy.setItem(HELMET_SLOT, set.helmet().clone());
             if (set.helmet().hasItemMeta()) helmetUnbreakable = set.helmet().getItemMeta().isUnbreakable();
         }
-        if (set.chestplate() != null) {
-            inventory.setItem(CHESTPLATE_SLOT, set.chestplate().clone());
+        if (set.chestplate() != null && set.chestplate().getType() != Material.AIR) {
+            femboy.setItem(CHESTPLATE_SLOT, set.chestplate().clone());
             if (set.chestplate().hasItemMeta()) chestplateUnbreakable = set.chestplate().getItemMeta().isUnbreakable();
         }
-        if (set.leggings() != null) {
-            inventory.setItem(LEGGINGS_SLOT, set.leggings().clone());
+        if (set.leggings() != null && set.leggings().getType() != Material.AIR) {
+            femboy.setItem(LEGGINGS_SLOT, set.leggings().clone());
             if (set.leggings().hasItemMeta()) leggingsUnbreakable = set.leggings().getItemMeta().isUnbreakable();
         }
-        if (set.boots() != null) {
-            inventory.setItem(BOOTS_SLOT, set.boots().clone());
+        if (set.boots() != null && set.boots().getType() != Material.AIR) {
+            femboy.setItem(BOOTS_SLOT, set.boots().clone());
             if (set.boots().hasItemMeta()) bootsUnbreakable = set.boots().getItemMeta().isUnbreakable();
         }
 
@@ -88,8 +93,8 @@ public class SetEditorHolder implements InventoryHolder {
             this.potionEffects.addAll(set.potionEffects());
         }
 
-        if (set.mainhand() != null) inventory.setItem(MAINHAND_SLOT, set.mainhand().clone());
-        if (set.offhand() != null) inventory.setItem(OFFHAND_SLOT, set.offhand().clone());
+        if (set.mainhand() != null && set.mainhand().getType() != Material.AIR) femboy.setItem(MAINHAND_SLOT, set.mainhand().clone());
+        if (set.offhand() != null && set.offhand().getType() != Material.AIR) femboy.setItem(OFFHAND_SLOT, set.offhand().clone());
     }
 
     public void renderControls() {
@@ -100,12 +105,12 @@ public class SetEditorHolder implements InventoryHolder {
             glass.setItemMeta(gMeta);
         }
 
-        for (int i = 0; i < inventory.getSize(); i++) {
+        for (int i = 0; i < femboy.getSize(); i++) {
             if (isInputSlot(i)) continue;
             if (isDisplaySlot(i)) continue;
             if (i == HELMET_TOGGLE || i == CHESTPLATE_TOGGLE || i == LEGGINGS_TOGGLE || i == BOOTS_TOGGLE) continue;
-            if (i == ATTRIBUTE_BTN || i == POTION_BTN || i == THRESHOLD_BTN || i == SAVE_BTN) continue;
-            inventory.setItem(i, glass);
+            if (i == ATTRIBUTE_BTN || i == POTION_BTN || i == THRESHOLD_BTN || i == TOGGLE_ENABLE_BTN || i == SAVE_BTN || i == DELETE_BTN) continue;
+            femboy.setItem(i, glass);
         }
 
         setDisplayPlaceholder(HELMET_DISP, Material.CHAINMAIL_HELMET, "§eHelmet Slot");
@@ -130,7 +135,7 @@ public class SetEditorHolder implements InventoryHolder {
             attrMeta.setLore(lore);
             attrItem.setItemMeta(attrMeta);
         }
-        inventory.setItem(ATTRIBUTE_BTN, attrItem);
+        femboy.setItem(ATTRIBUTE_BTN, attrItem);
 
         ItemStack potionItem = new ItemStack(Material.BREWING_STAND);
         ItemMeta pMeta = potionItem.getItemMeta();
@@ -146,7 +151,7 @@ public class SetEditorHolder implements InventoryHolder {
             pMeta.setLore(lore);
             potionItem.setItemMeta(pMeta);
         }
-        inventory.setItem(POTION_BTN, potionItem);
+        femboy.setItem(POTION_BTN, potionItem);
 
         ItemStack thresholdItem = new ItemStack(Material.COMPARATOR);
         ItemMeta tMeta = thresholdItem.getItemMeta();
@@ -155,16 +160,34 @@ public class SetEditorHolder implements InventoryHolder {
             tMeta.setLore(List.of("§7Click to cycle required piece count."));
             thresholdItem.setItemMeta(tMeta);
         }
-        inventory.setItem(THRESHOLD_BTN, thresholdItem);
+        femboy.setItem(THRESHOLD_BTN, thresholdItem);
+
+        ItemStack toggleEnableItem = new ItemStack(enabled ? Material.LIME_DYE : Material.GRAY_DYE);
+        ItemMeta toggleMeta = toggleEnableItem.getItemMeta();
+        if (toggleMeta != null) {
+            toggleMeta.setDisplayName(enabled ? "§aStatus: Enabled" : "§cStatus: Disabled");
+            toggleMeta.setLore(List.of("§7Click to toggle this set active or inactive."));
+            toggleEnableItem.setItemMeta(toggleMeta);
+        }
+        femboy.setItem(TOGGLE_ENABLE_BTN, toggleEnableItem);
 
         ItemStack saveItem = new ItemStack(Material.LIME_WOOL);
         ItemMeta sMeta = saveItem.getItemMeta();
         if (sMeta != null) {
-            sMeta.setDisplayName("§a§lSave set");
+            sMeta.setDisplayName("§a§lSave Set");
             sMeta.setLore(List.of("§7Click to save set configuration."));
             saveItem.setItemMeta(sMeta);
         }
-        inventory.setItem(SAVE_BTN, saveItem);
+        femboy.setItem(SAVE_BTN, saveItem);
+
+        ItemStack deleteItem = new ItemStack(Material.RED_CONCRETE);
+        ItemMeta dMeta = deleteItem.getItemMeta();
+        if (dMeta != null) {
+            dMeta.setDisplayName("§c§lDelete Set");
+            dMeta.setLore(List.of("§7Click to delete this set permanently."));
+            deleteItem.setItemMeta(dMeta);
+        }
+        femboy.setItem(DELETE_BTN, deleteItem);
     }
 
     private void setToggleItem(int slot, String piece, boolean state) {
@@ -175,7 +198,7 @@ public class SetEditorHolder implements InventoryHolder {
             meta.setLore(List.of("§7Click to toggle unbreakable state."));
             item.setItemMeta(meta);
         }
-        inventory.setItem(slot, item);
+        femboy.setItem(slot, item);
     }
 
     private void setDisplayPlaceholder(int slot, Material mat, String name) {
@@ -186,7 +209,7 @@ public class SetEditorHolder implements InventoryHolder {
             meta.setLore(List.of("§7Place the actual piece in the slot below."));
             item.setItemMeta(meta);
         }
-        inventory.setItem(slot, item);
+        femboy.setItem(slot, item);
     }
 
     public boolean isInputSlot(int slot) {
@@ -225,6 +248,13 @@ public class SetEditorHolder implements InventoryHolder {
         this.bootsUnbreakable = !this.bootsUnbreakable;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+    public void toggleEnabled() {
+        this.enabled = !this.enabled;
+    }
+
     public String getSetId() {
         return setId;
     }
@@ -243,6 +273,6 @@ public class SetEditorHolder implements InventoryHolder {
 
     @Override
     public Inventory getInventory() {
-        return inventory;
+        return femboy;
     }
 }

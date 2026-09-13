@@ -2,12 +2,14 @@ package me.stickyballs2652.bonusSets.manager;
 
 import me.stickyballs2652.bonusSets.Main;
 import me.stickyballs2652.bonusSets.model.BonusSet;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -49,6 +51,7 @@ public class SetManager {
         config.set(path + "displayName", set.displayName());
         config.set(path + "requiredPieces", set.requiredPieces());
         config.set(path + "permission", set.permission());
+        config.set(path + "enabled", set.isEnabled());
 
         config.set(path + "items.helmet", set.helmet());
         config.set(path + "items.chestplate", set.chestplate());
@@ -79,6 +82,31 @@ public class SetManager {
         }
     }
 
+    public void deleteSet(String id) {
+        if (id == null) return;
+        String lowerId = id.toLowerCase();
+
+        activeSets.remove(lowerId);
+
+        if (config.contains("sets." + id)) {
+            config.set("sets." + id, null);
+        } else if (config.contains("sets." + lowerId)) {
+            config.set("sets." + lowerId, null);
+        }
+
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Could not remove set " + id + " from sets.yml!");
+        }
+
+        if (plugin.getEquipmentListener() != null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                plugin.getEquipmentListener().updatePlayerAttributes(player);
+            }
+        }
+    }
+
     public void loadSets() {
         activeSets.clear();
         ConfigurationSection section = config.getConfigurationSection("sets");
@@ -89,6 +117,7 @@ public class SetManager {
             String displayName = config.getString(path + "displayName", key);
             int requiredPieces = config.getInt(path + "requiredPieces", 1);
             String permission = config.getString(path + "permission", "bonussets.use." + key.toLowerCase());
+            boolean enabled = config.getBoolean(path + "enabled", true);
 
             ItemStack helmet = config.getItemStack(path + "items.helmet");
             ItemStack chestplate = config.getItemStack(path + "items.chestplate");
@@ -129,9 +158,29 @@ public class SetManager {
             BonusSet set = new BonusSet(
                     key, displayName, helmet, chestplate, leggings, boots,
                     mainhand, offhand, requiredPieces, attributes, potionEffects,
-                    activateCmds, deactivateCmds, permission
+                    activateCmds, deactivateCmds, permission, enabled
             );
             activeSets.put(key.toLowerCase(), set);
+        }
+    }
+
+    public void setSetState(String id, boolean enabled) {
+        BonusSet set = getSet(id);
+        if (set == null) return;
+
+        set.setEnabled(enabled);
+        String path = "sets." + set.id() + ".";
+        config.set(path + "enabled", enabled);
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Could not save state for set " + set.id());
+        }
+
+        if (plugin.getEquipmentListener() != null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                plugin.getEquipmentListener().updatePlayerAttributes(player);
+            }
         }
     }
 

@@ -14,15 +14,15 @@ import org.bukkit.inventory.ItemStack;
 public class AttributeEditorListener implements Listener {
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof AttributeEditorHolder holder)) {
+    public void onInventoryClick(InventoryClickEvent meowEvent) {
+        if (!(meowEvent.getInventory().getHolder() instanceof AttributeEditorHolder holder)) {
             return;
         }
 
-        event.setCancelled(true);
+        meowEvent.setCancelled(true);
 
-        int slot = event.getRawSlot();
-        if (slot >= event.getInventory().getSize()) return;
+        int slot = meowEvent.getRawSlot();
+        if (slot >= meowEvent.getInventory().getSize()) return;
 
         if (slot == AttributeEditorHolder.PREV_PAGE_BTN && holder.getPage() > 0) {
             holder.setPage(holder.getPage() - 1);
@@ -36,7 +36,7 @@ public class AttributeEditorListener implements Listener {
             return;
         }
 
-        if (slot == AttributeEditorHolder.SAVE_BACK_BTN && event.getWhoClicked() instanceof Player player) {
+        if (slot == AttributeEditorHolder.SAVE_BACK_BTN && meowEvent.getWhoClicked() instanceof Player catboy) {
             SetEditorHolder editorHolder = new SetEditorHolder(
                     holder.getSetId(),
                     Main.getInstance().getSetManager().getSet(holder.getSetId())
@@ -44,46 +44,38 @@ public class AttributeEditorListener implements Listener {
             editorHolder.getAttributes().clear();
             editorHolder.getAttributes().putAll(holder.getAttributes());
             editorHolder.renderControls();
-            player.openInventory(editorHolder.getInventory());
+            catboy.openInventory(editorHolder.getInventory());
             return;
         }
 
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta() || !clicked.getItemMeta().hasDisplayName()) return;
+        ItemStack meowClicked = meowEvent.getCurrentItem();
+        if (meowClicked == null || !meowClicked.hasItemMeta() || !meowClicked.getItemMeta().hasDisplayName()) return;
 
-        String keyName = clicked.getItemMeta().getDisplayName().replace("§e", "").trim().toLowerCase();
+        String keyName = meowClicked.getItemMeta().getDisplayName().replace("§e", "").trim().toLowerCase();
         try {
             Attribute attr = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(keyName));
             if (attr == null) return;
 
-            double current = holder.getAttributes().getOrDefault(attr, 0.0);
-            ClickType click = event.getClick();
+            ClickType meowClick = meowEvent.getClick();
+            double modifier = 0.0;
 
-            if (click == ClickType.LEFT) {
-                current += 1.0;
-            } else if (click == ClickType.SHIFT_LEFT) {
-                current += 0.1;
-            } else if (click == ClickType.DROP) {
-                current += 0.01;
-            } else if (click == ClickType.RIGHT) {
-                current -= 1.0;
-            } else if (click == ClickType.SHIFT_RIGHT) {
-                current -= 0.1;
-            } else if (click == ClickType.CONTROL_DROP) {
-                current -= 0.01;
+            if (meowClick == ClickType.LEFT) {
+                modifier = 1.0;
+            } else if (meowClick == ClickType.SHIFT_LEFT) {
+                modifier = 0.1;
+            } else if (meowClick == ClickType.DROP) {
+                modifier = 0.01;
+            } else if (meowClick == ClickType.RIGHT) {
+                modifier = -1.0;
+            } else if (meowClick == ClickType.SHIFT_RIGHT) {
+                modifier = -0.1;
+            } else if (meowClick == ClickType.CONTROL_DROP) {
+                modifier = -0.01;
             } else {
                 return;
             }
 
-            double rounded = Math.round(current * 100.0) / 100.0;
-
-            if (rounded == 0.0) {
-                holder.getAttributes().remove(attr);
-            } else {
-                holder.getAttributes().put(attr, rounded);
-            }
-
-            holder.render();
-        } catch (IllegalArgumentException ignored) {}
+            holder.updateAttribute(attr, modifier);
+        } catch (IllegalArgumentException meowIgnored) {}
     }
 }

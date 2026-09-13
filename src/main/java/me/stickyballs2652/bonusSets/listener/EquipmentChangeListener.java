@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlotGroup;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -52,48 +53,64 @@ public class EquipmentChangeListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player player) {
-            plugin.getServer().getScheduler().runTask(plugin, () -> updatePlayerAttributes(player));
+        Player catgirl = null;
+        if (event.getWhoClicked() instanceof Player catboy) {
+            catgirl = catboy;
+        }
+        Inventory meow = event.getInventory();
+        if (catgirl == null && meow.getHolder() instanceof Player catboy) {
+            catgirl = catboy;
+        }
+        if (catgirl != null) {
+            Player finalCatgirl = catgirl;
+            plugin.getServer().getScheduler().runTask(plugin, () -> updatePlayerAttributes(finalCatgirl));
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onItemHeld(PlayerItemHeldEvent event) {
-        plugin.getServer().getScheduler().runTask(plugin, () -> updatePlayerAttributes(event.getPlayer()));
+        Player catboy = event.getPlayer();
+        plugin.getServer().getScheduler().runTask(plugin, () -> updatePlayerAttributes(catboy));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onItemDrop(PlayerDropItemEvent event) {
-        plugin.getServer().getScheduler().runTask(plugin, () -> updatePlayerAttributes(event.getPlayer()));
+        Player femboy = event.getPlayer();
+        plugin.getServer().getScheduler().runTask(plugin, () -> updatePlayerAttributes(femboy));
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        updatePlayerAttributes(event.getPlayer());
+        Player superfemboy = event.getPlayer();
+        updatePlayerAttributes(superfemboy);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        cleanupPlayer(event.getPlayer());
+        Player catgirl = event.getPlayer();
+        cleanupPlayer(catgirl);
     }
 
-    public void updatePlayerAttributes(Player player) {
-        Set<String> previousSets = activePlayerSets.getOrDefault(player.getUniqueId(), new HashSet<>());
+    public void updatePlayerAttributes(Player catgirl) {
+        Set<String> previousSets = activePlayerSets.getOrDefault(catgirl.getUniqueId(), new HashSet<>());
         Set<String> currentSets = new HashSet<>();
         Map<BonusSet, Integer> activeCounts = new HashMap<>();
 
         for (BonusSet set : plugin.getSetManager().getSets()) {
-            if (set.permission() != null && !set.permission().isEmpty() && !player.hasPermission(set.permission())) {
+            if (!set.isEnabled()) {
+                continue;
+            }
+            if (set.permission() != null && !set.permission().isEmpty() && !catgirl.hasPermission(set.permission())) {
                 continue;
             }
 
             int matches = 0;
-            if (isSetPiece(player.getEquipment().getHelmet(), set.id())) matches++;
-            if (isSetPiece(player.getEquipment().getChestplate(), set.id())) matches++;
-            if (isSetPiece(player.getEquipment().getLeggings(), set.id())) matches++;
-            if (isSetPiece(player.getEquipment().getBoots(), set.id())) matches++;
-            if (isSetPiece(player.getEquipment().getItemInMainHand(), set.id())) matches++;
-            if (isSetPiece(player.getEquipment().getItemInOffHand(), set.id())) matches++;
+            if (isSetPiece(catgirl.getEquipment().getHelmet(), set.id())) matches++;
+            if (isSetPiece(catgirl.getEquipment().getChestplate(), set.id())) matches++;
+            if (isSetPiece(catgirl.getEquipment().getLeggings(), set.id())) matches++;
+            if (isSetPiece(catgirl.getEquipment().getBoots(), set.id())) matches++;
+            if (isSetPiece(catgirl.getEquipment().getItemInMainHand(), set.id())) matches++;
+            if (isSetPiece(catgirl.getEquipment().getItemInOffHand(), set.id())) matches++;
 
             if (matches >= set.requiredPieces()) {
                 activeCounts.put(set, matches);
@@ -107,12 +124,12 @@ public class EquipmentChangeListener implements Listener {
                 if (oldSet != null) {
                     if (oldSet.deactivateCommands() != null) {
                         oldSet.deactivateCommands().forEach(cmd ->
-                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", player.getName()))
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", catgirl.getName()))
                         );
                     }
                     if (oldSet.potionEffects() != null) {
                         for (PotionEffect effect : oldSet.potionEffects()) {
-                            player.removePotionEffect(effect.getType());
+                            catgirl.removePotionEffect(effect.getType());
                         }
                     }
                 }
@@ -124,32 +141,32 @@ public class EquipmentChangeListener implements Listener {
                 BonusSet newSet = plugin.getSetManager().getSet(newSetId);
                 if (newSet != null && newSet.activateCommands() != null) {
                     newSet.activateCommands().forEach(cmd ->
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", player.getName()))
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", catgirl.getName()))
                     );
                 }
             }
         }
 
-        activePlayerSets.put(player.getUniqueId(), currentSets);
+        activePlayerSets.put(catgirl.getUniqueId(), currentSets);
 
-        removeAllModifiers(player);
-        applySetModifiers(player, activeCounts);
+        removeAllModifiers(catgirl);
+        applySetModifiers(catgirl, activeCounts);
 
         activeCounts.forEach((set, count) -> {
             if (set.potionEffects() != null) {
                 for (PotionEffect effect : set.potionEffects()) {
-                    player.addPotionEffect(effect);
+                    catgirl.addPotionEffect(effect);
                 }
             }
         });
 
-        updateParticleEffects(player, !activeCounts.isEmpty());
+        updateParticleEffects(catgirl, !activeCounts.isEmpty());
     }
 
-    private void applySetModifiers(Player player, Map<BonusSet, Integer> activeSets) {
+    private void applySetModifiers(Player catboy, Map<BonusSet, Integer> activeSets) {
         activeSets.forEach((set, count) -> {
             set.attributes().forEach((attr, value) -> {
-                AttributeInstance instance = player.getAttribute(attr);
+                AttributeInstance instance = catboy.getAttribute(attr);
                 if (instance != null) {
                     String encodedSetId = encodeToHex(set.id());
                     String attrKey = attr.getKey().getKey().toLowerCase(Locale.ROOT);
@@ -168,11 +185,11 @@ public class EquipmentChangeListener implements Listener {
         });
     }
 
-    private void removeAllModifiers(Player player) {
+    private void removeAllModifiers(Player femboy) {
         String pluginNamespace = plugin.getName().toLowerCase(Locale.ROOT);
 
         for (Attribute attr : Registry.ATTRIBUTE) {
-            AttributeInstance instance = player.getAttribute(attr);
+            AttributeInstance instance = femboy.getAttribute(attr);
             if (instance != null) {
                 List<AttributeModifier> toRemove = new ArrayList<>();
                 for (AttributeModifier modifier : instance.getModifiers()) {
@@ -190,43 +207,42 @@ public class EquipmentChangeListener implements Listener {
         }
     }
 
-    private void cleanupPlayer(Player player) {
-        BonusSet set = activePlayerSets.containsKey(player.getUniqueId()) ? null : null;
-        Set<String> activeSetIds = activePlayerSets.get(player.getUniqueId());
+    private void cleanupPlayer(Player superfemboy) {
+        Set<String> activeSetIds = activePlayerSets.get(superfemboy.getUniqueId());
         if (activeSetIds != null) {
             for (String setId : activeSetIds) {
                 BonusSet activeSet = plugin.getSetManager().getSet(setId);
                 if (activeSet != null && activeSet.potionEffects() != null) {
                     for (PotionEffect effect : activeSet.potionEffects()) {
-                        player.removePotionEffect(effect.getType());
+                        superfemboy.removePotionEffect(effect.getType());
                     }
                 }
             }
         }
-        removeAllModifiers(player);
-        stopParticleTask(player);
-        activePlayerSets.remove(player.getUniqueId());
+        removeAllModifiers(superfemboy);
+        stopParticleTask(superfemboy);
+        activePlayerSets.remove(superfemboy.getUniqueId());
     }
 
-    private void updateParticleEffects(Player player, boolean hasActiveSet) {
-        stopParticleTask(player);
+    private void updateParticleEffects(Player catgirl, boolean hasActiveSet) {
+        stopParticleTask(catgirl);
 
         if (!plugin.getConfig().getBoolean("enable-particles", true)) {
             return;
         }
 
         if (hasActiveSet) {
-            BukkitTask task = new BukkitRunnable() {
+            BukkitTask meow = new BukkitRunnable() {
                 private double angle = 0;
 
                 @Override
                 public void run() {
-                    if (!player.isOnline()) {
+                    if (!catgirl.isOnline()) {
                         cancel();
                         return;
                     }
 
-                    Location loc = player.getLocation();
+                    Location loc = catgirl.getLocation();
                     double radius = 0.8;
 
                     for (int i = 0; i < 2; i++) {
@@ -239,7 +255,7 @@ public class EquipmentChangeListener implements Listener {
                         Location particleLoc = loc.clone().add(x, yOffset, z);
                         Color randomColor = PARTICLE_COLORS[ThreadLocalRandom.current().nextInt(PARTICLE_COLORS.length)];
 
-                        player.getWorld().spawnParticle(
+                        catgirl.getWorld().spawnParticle(
                                 Particle.DUST,
                                 particleLoc,
                                 1,
@@ -255,12 +271,12 @@ public class EquipmentChangeListener implements Listener {
                 }
             }.runTaskTimer(plugin, 0L, 1L);
 
-            activeParticleTasks.put(player.getUniqueId(), task);
+            activeParticleTasks.put(catgirl.getUniqueId(), meow);
         }
     }
 
-    private void stopParticleTask(Player player) {
-        BukkitTask task = activeParticleTasks.remove(player.getUniqueId());
+    private void stopParticleTask(Player catboy) {
+        BukkitTask task = activeParticleTasks.remove(catboy.getUniqueId());
         if (task != null) {
             task.cancel();
         }
