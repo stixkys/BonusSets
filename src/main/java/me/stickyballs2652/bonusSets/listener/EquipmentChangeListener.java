@@ -242,6 +242,11 @@ public class EquipmentChangeListener implements Listener {
                         return;
                     }
 
+                    if (!plugin.getConfig().getBoolean("enable-particles", true)) {
+                        cancel();
+                        return;
+                    }
+
                     Location loc = catgirl.getLocation();
                     double radius = 0.8;
 

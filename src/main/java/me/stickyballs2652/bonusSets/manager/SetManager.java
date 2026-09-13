@@ -108,6 +108,8 @@ public class SetManager {
     }
 
     public void loadSets() {
+        plugin.reloadConfig();
+
         activeSets.clear();
         ConfigurationSection section = config.getConfigurationSection("sets");
         if (section == null) return;
